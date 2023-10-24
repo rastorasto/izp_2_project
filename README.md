@@ -1,0 +1,1 @@
+Druhy izp projekt :)
