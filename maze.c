@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
 void print_help(){
@@ -7,40 +8,34 @@ void print_help(){
     printf("Use --lpath R C file.txt for searching with left hand rule.\n");
     printf("R stands for number of rows and C stands for number of collumns.\n");
 }
-void createmap(){
-    
+typedef struct {
+    int rows;
+    int cols;
+    unsigned char *cells;
+} Map;
+Map map_alloc(int rows, int cols){
+    Map mapa = {.rows = rows, .cols=cols,.cells=NULL};
+    mapa.cells=malloc(sizeof(int)*rows*cols);
+    return mapa;
 }
 int main(int argc, char *argv[]){
-    typedef struct {
-        int rows;
-        int cols;
-        unsigned char *cells;
-    } Map;
     Map mapa;
-    char buffer[1000];
-    char number;
+    int number[100];
     int index=0;
+    int rows;
+    int cols;
     FILE *pFile = fopen(argv[4],"r");
     if(pFile == NULL){
         fprintf(stderr,"File doesn't exist. Check ./maze --help for information.");
         fclose(pFile);
         return 1;
     } else {
-        while((number = fgetc(pFile)) != EOF){
-                if(number != ' ' && number != '\n'){
-                    if(index==0){
-                        mapa.cols = number - '0';
-                        index++;
-                    } else if (index==1) {
-                        mapa.rows = number - '0';
-                        index++;
-                    } else {
-                        strcat(buffer,&number);
-                    }
-                }
-    }
-        strcat(buffer,"\0");
-        mapa.cells = (unsigned char*)buffer;
+        fscanf(pFile,"%d %d",&rows,&cols);
+        map_alloc(rows,cols);
+        while(fscanf(pFile,"%d",&number[index]) != EOF){
+            index++;
+        }
+        mapa.cells = (unsigned char*)number;
         fclose(pFile);
     }
 
