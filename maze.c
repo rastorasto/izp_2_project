@@ -16,18 +16,25 @@ typedef struct {
 int map_alloc(Map *mapa,int rows, int cols){
     mapa->rows = 0;
     mapa->cols = 0;
-    mapa->cells=malloc(sizeof(unsigned char)*rows*cols);
+    mapa->cells=(unsigned char *)malloc(sizeof(unsigned char)*rows*cols);
     if(mapa->cells==NULL){
+        free(mapa->cells);
         return 1;
     }
     return 0;
 }
-int map_init(Map *mapa,int rows, int cols,int number[]){
+int map_init(Map *mapa,int rows, int cols,int *number){
     mapa->rows=rows;
     mapa->cols=cols;
     for(int i=0; i < rows*cols;i++){
         mapa->cells[i]=number[i];
     }
+    return 0;
+}
+int map_dest(Map *mapa){
+    free(mapa->cells);
+    mapa->cols=0;
+    mapa->rows=0;
     return 0;
 }
 int print_map(Map *mapa){
@@ -39,31 +46,38 @@ int print_map(Map *mapa){
         }
         return 0;
 }
-int main(int argc, char *argv[]){
-    Map mapa;
+int read_file(char *filename,int *rows,int *cols,int *number){
     int index=0;
-    int rows;
-    int cols;
-    int number[100];
-    FILE *pFile = fopen(argv[4],"r");
+    FILE *pFile = fopen(filename,"r");
     if(pFile == NULL){
-        fprintf(stderr,"File doesn't exist. Check ./maze --help for information.");
         fclose(pFile);
         return 1;
     } else {
-        fscanf(pFile,"%d %d",&rows,&cols);
-        if(map_alloc(&mapa, rows,cols)){
-            fprintf(stderr,"Failed to allocate cells.");
-            return 1;
-        }
+        fscanf(pFile,"%d %d",rows,cols);
 
         while(fscanf(pFile,"%d",&number[index]) != EOF){
             index++;
         }
-
         fclose(pFile);
-        map_init(&mapa, rows,cols,number);
+        return 0;
     }
+}
+int main(int argc, char *argv[]){
+    Map mapa;
+    int rows=0;
+    int cols=0;
+    int number[100];
+    if(argc == 5 && argv[4]){
+        if(read_file(argv[4],&rows,&cols,number)){
+            fprintf(stderr,"Failed to read from file.");
+            return 1;
+        }
+    }
+    if(map_alloc(&mapa, rows,cols)){
+        fprintf(stderr,"Failed to allocate cells.");
+        return 1;
+    }
+    map_init(&mapa, rows,cols,number);
 
 
     if(argc>1 && strcmp(argv[1], "--help")==0){
@@ -75,8 +89,9 @@ int main(int argc, char *argv[]){
     } else if (argc==5 && strcmp(argv[1],"--lpath")==0){
         printf("lpath");
     } else {
-        fprintf(stderr,"Error. No input detected.");
+        fprintf(stderr,"Invalid arguments. Use --help for more infomation.");
         return 1;
     }
+    map_dest(&mapa);
     return 0;
 }
