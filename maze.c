@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
     }
     map_init(&map, rows,cols,number);
 
-    if(isborder(&map,0,0,1)){
+    if(isborder(&map,0,1,0)){
         printf("Is border");
     }
 
