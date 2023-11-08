@@ -19,9 +19,9 @@ int map_alloc(Map *map,int rows, int cols){
     map->cells=(unsigned char *)malloc(sizeof(unsigned char)*rows*cols);
     if(map->cells==NULL){
         free(map->cells);
-        return 1;
+        return 0;
     }
-    return 0;
+    return 1;
 }
 int map_init(Map *map,int rows, int cols,int *number){
     map->rows=rows;
@@ -29,13 +29,13 @@ int map_init(Map *map,int rows, int cols,int *number){
     for(int i=0; i < rows*cols;i++){
         map->cells[i]=(unsigned char)number[i];
     }
-    return 0;
+    return 1;
 }
 int map_dest(Map *map){
     free(map->cells);
     map->cols=0;
     map->rows=0;
-    return 0;
+    return 1;
 }
 int print_map(Map *map){
         printf("COLS: %d\n",map->cols);
@@ -45,35 +45,34 @@ int print_map(Map *map){
             printf("%d ",map->cells[i]);
         }
         printf("\n");
-        return 0;
+        return 1;
 }
-int read_file(char *filename,int *rows,int *cols,int *number){
-    int index=0;
+int read_file(char *filename,int *rows,int *cols,int *number,int *index){
     FILE *pFile = fopen(filename,"r");
     if(pFile == NULL){
         fclose(pFile);
-        return 1;
+        return 0;
     } else {
         fscanf(pFile,"%d %d",rows,cols);
 
-        while(fscanf(pFile,"%d",&number[index]) != EOF){
-            index++;
+        while(fscanf(pFile,"%d",&number[*index]) != EOF){
+            (*index)++;
         }
         fclose(pFile);
-        return 0;
+        return 1;
     }
 }
 bool isborder(Map *map, int r, int c, int border){
     if(border==0){
-        if(map->cells[(r*c)+c] & 4){
+        if(map->cells[(r*map->cols)+c] & 4){
             return 1;
         }
     } else if (border==1){
-        if(map->cells[(r*c)+c] & 2){
+        if(map->cells[(r*map->cols)+c] & 2){
             return 1;
         } 
     } else if(border==2){
-        if(map->cells[(r*c)+c] & 1){
+        if(map->cells[(r*map->cols)+c] & 1){
             return 1;
         }
     }
@@ -82,38 +81,78 @@ bool isborder(Map *map, int r, int c, int border){
 int print_map_binary(Map *map) {
     printf("Binary representation of MAPA:\n");
     for (int i = 0; i < map->rows * map->cols; i++) {
+            if(i%map->cols == 0){
+                printf("\n");
+            }
         for (int bit = 2; bit >= 0; bit--) {
             printf("%d ", (map->cells[i] >> bit) & 1);
         }
-        printf("\n");
+        printf(" ");
     }
     return 0;
+}
+int check_file_cells(int index,int rows, int cols){
+    if(index != rows*cols){
+        return 0;
+    } else {
+        return 1;
+    }
+}
+int check_borders(Map *map){
+    for(int i=0;i<map->rows;i++){
+        for(int j=0;j<map->cols-1;j++){
+            if(!(isborder(map,i,j,1) == isborder(map,i,j+1,2))){
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 int main(int argc, char *argv[]){
     Map map;
     int rows=0;
     int cols=0;
+    int index = 0;
     int number[100];
-    if(argc == 5 && argv[4]){
-        if(read_file(argv[4],&rows,&cols,number)){
-            fprintf(stderr,"Failed to read from file.");
-            return 1;
-        }
+    char vstup[30]={0};
+    if(argc == 5){
+        strcpy(vstup,argv[4]);
+    } else if (argc == 3){
+        strcpy(vstup,argv[2]);
     }
-    if(map_alloc(&map, rows,cols)){
+    if(!read_file(vstup,&rows,&cols,number,&index)){
+        fprintf(stderr,"Failed to read from file.");
+        return 1;
+    }
+    if(!map_alloc(&map, rows,cols)){
         fprintf(stderr,"Failed to allocate cells.");
         return 1;
     }
     map_init(&map, rows,cols,number);
-
-    if(isborder(&map,0,1,0)){
-        printf("Is border");
+    /*
+    if(isborder(&map,0,3,1)){
+        printf("Is border\n");
+    } else {
+        printf("Is not a border\n");
     }
-
+    if(isborder(&map,0,4,2)){
+        printf("Is border\n");
+    } else {
+        printf("Is not a border\n");
+    }
+    */
     if(argc>1 && strcmp(argv[1], "--help")==0){
         print_help();
     } else if (argc==3 && strcmp(argv[1], "--test")==0){
-        printf("test");
+        // printf("test");
+        if(!check_file_cells(index,rows,cols)){
+            printf("Invalid");
+            return 1;
+        } else if (!check_borders(&map)){
+            printf("Invalid");
+        } else {
+            printf("Valid");
+        }
     } else if (argc==5 && strcmp(argv[1],"--rpath")==0){
         print_map(&map);
         print_map_binary(&map);
