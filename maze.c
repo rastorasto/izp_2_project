@@ -104,8 +104,20 @@ int check_borders(Map *map){
             if(!(isborder(map,i,j,1) == isborder(map,i,j+1,2))){
                 return 0;
             }
+            if(i < map->rows-1 && j % 2 != 0){
+                if(!(isborder(map,i,j,0) == isborder(map,i+1,j,0))){
+                    return 0;
+                } 
+            }
         }
-    }
+    }/*
+    for(int i=0;i<map->rows-1;i++){
+        for(int j=1;j<map->cols;j+=2){
+            if(!(isborder(map,i,j,0) == isborder(map,i+1,j,0))){
+                return 0;
+            }
+        }
+    }*/
     return 1;
 }
 int main(int argc, char *argv[]){
@@ -114,7 +126,7 @@ int main(int argc, char *argv[]){
     int cols=0;
     int index = 0;
     int number[100];
-    char vstup[30]={0};
+    char vstup[100]={0};
     if(argc == 5){
         strcpy(vstup,argv[4]);
     } else if (argc == 3){
@@ -146,12 +158,12 @@ int main(int argc, char *argv[]){
     } else if (argc==3 && strcmp(argv[1], "--test")==0){
         // printf("test");
         if(!check_file_cells(index,rows,cols)){
-            printf("Invalid");
+            printf("Invalid\n");
             return 1;
         } else if (!check_borders(&map)){
-            printf("Invalid");
+            printf("Invalid\n");
         } else {
-            printf("Valid");
+            printf("Valid\n");
         }
     } else if (argc==5 && strcmp(argv[1],"--rpath")==0){
         print_map(&map);
