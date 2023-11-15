@@ -104,7 +104,7 @@ int check_borders(Map *map){
             if(!(isborder(map,i,j,1) == isborder(map,i,j+1,2))){
                 return 0;
             }
-            if(i < map->rows-1 && j % 2 != 0){
+            if(i < map->rows-1 && (i+j) % 2 != 0){
                 if(!(isborder(map,i,j,0) == isborder(map,i+1,j,0))){
                     return 0;
                 } 
