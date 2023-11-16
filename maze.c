@@ -68,15 +68,15 @@ int read_file(char *filename,int *rows,int *cols,int *number,int *index){
     }
 }
 bool isborder(Map *map, int r, int c, int border){
-    if(border==0){
+    if(border==top_bot_side){
         if(map->cells[(r*map->cols)+c] & 4){
             return 1;
         }
-    } else if (border==1){
+    } else if (border==right_side){
         if(map->cells[(r*map->cols)+c] & 2){
             return 1;
         } 
-    } else if(border==2){
+    } else if(border==left_side){
         if(map->cells[(r*map->cols)+c] & 1){
             return 1;
         }
@@ -106,11 +106,11 @@ int check_file_cells(int index,int rows, int cols){
 int check_borders(Map *map){
     for(int i=0;i<map->rows;i++){
         for(int j=0;j<map->cols-1;j++){
-            if(!(isborder(map,i,j,1) == isborder(map,i,j+1,2))){
+            if(!(isborder(map,i,j,right_side) == isborder(map,i,j+1,left_side))){
                 return 0;
             }
             if(i < map->rows-1 && (i+j) % 2 != 0){
-                if(!(isborder(map,i,j,0) == isborder(map,i+1,j,0))){
+                if(!(isborder(map,i,j,top_bot_side) == isborder(map,i+1,j,top_bot_side))){
                     return 0;
                 } 
             }
@@ -160,13 +160,12 @@ int start_border(Map *map, int r, int c, int leftright){
             // printf("4 leva");
             return left_side;
         }
-    } else {
-        return 0;
     }
+    return 0;
 }
 void find_path(Map *map,int start_row,int start_col,int start_border_side){
-    if(isborder(&map,start_row,start_col,start_border_side)){
-        
+    if(isborder(map,start_row,start_col,start_border_side)){
+        printf("zee");
     }
 }
 int main(int argc, char *argv[]){
