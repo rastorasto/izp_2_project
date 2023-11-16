@@ -2,6 +2,11 @@
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
+#define righthand 1
+#define lefthand 2
+#define left_side 1
+#define right_side 2
+#define top_bot_side 3
 void print_help(){
     printf("Use --test file.txt to test the map.\n");
     printf("Use --rpath R C file.txt for searching with right hand rule.\n");
@@ -38,8 +43,8 @@ int map_dest(Map *map){
     return 1;
 }
 int print_map(Map *map){
-        printf("COLS: %d\n",map->cols);
         printf("ROWS: %d\n",map->rows);
+        printf("COLS: %d\n",map->cols);
         printf("MAPA: ");
         for(int i=0;i<map->rows*map->cols;i++){
             printf("%d ",map->cells[i]);
@@ -110,15 +115,59 @@ int check_borders(Map *map){
                 } 
             }
         }
-    }/*
-    for(int i=0;i<map->rows-1;i++){
-        for(int j=1;j<map->cols;j+=2){
-            if(!(isborder(map,i,j,0) == isborder(map,i+1,j,0))){
-                return 0;
-            }
-        }
-    }*/
+    }
     return 1;
+}
+int start_border(Map *map, int r, int c, int leftright){
+    printf("START BORDER: ");
+    if(leftright == righthand){
+        if(r % 2 == 0 && c == 1){
+            // printf("1 prava");
+            return right_side;
+        } else if (r % 2 == 1 && c==1){
+            // printf("2 dolni");
+            return top_bot_side;
+        } else if (c == map->cols && r % 2 == 1){
+            // printf("5 horni");
+            return top_bot_side;
+        } else if (r % 2 == 0 && c == map->cols) {
+            // printf("6 leva");
+            return left_side;
+        } else if (r == 1){
+            // printf("3 leva");
+            return left_side;
+        } else if (r == map->rows){
+            // printf("4 prava");
+            return right_side;
+        }
+    } else if (leftright ==righthand){
+        if(r % 2 == 0 && c == 1){
+            // printf("1 leva");
+            return left_side;
+        } else if (r % 2 == 1 && c==1){
+            // printf("2 horni");
+            return top_bot_side;
+        } else if (c == map->cols && r % 2 == 1){
+            // printf("5 dolni");
+            return top_bot_side;
+        } else if (r % 2 == 0 && c == map->cols) {
+            // printf("6 prava");
+            return right_side;
+        } else if (r == 1){
+            // printf("3 prava");
+            return right_side;
+        } else if (r == map->rows){
+            // printf("4 leva");
+            return left_side;
+        }
+    } else {
+        return 0;
+    }
+}
+void find_path(Map *map,int start_row,int start_col,int start_border_side){
+    if(isborder(&map,start_row,start_col,start_border_side)){
+        
+    }
 }
 int main(int argc, char *argv[]){
     Map map;
@@ -127,6 +176,7 @@ int main(int argc, char *argv[]){
     int index = 0;
     int number[100];
     char vstup[100]={0};
+    int start_border_side = 0;
     if(argc == 5){
         strcpy(vstup,argv[4]);
     } else if (argc == 3){
@@ -141,22 +191,9 @@ int main(int argc, char *argv[]){
         return 1;
     }
     map_init(&map, rows,cols,number);
-    /*
-    if(isborder(&map,0,3,1)){
-        printf("Is border\n");
-    } else {
-        printf("Is not a border\n");
-    }
-    if(isborder(&map,0,4,2)){
-        printf("Is border\n");
-    } else {
-        printf("Is not a border\n");
-    }
-    */
     if(argc>1 && strcmp(argv[1], "--help")==0){
         print_help();
     } else if (argc==3 && strcmp(argv[1], "--test")==0){
-        // printf("test");
         if(!check_file_cells(index,rows,cols)){
             printf("Invalid\n");
             return 1;
@@ -168,6 +205,13 @@ int main(int argc, char *argv[]){
     } else if (argc==5 && strcmp(argv[1],"--rpath")==0){
         print_map(&map);
         print_map_binary(&map);
+        int start_row = atoi(argv[2]);
+        int start_col = atoi(argv[3]);
+        if(start_border_side == start_border(&map,start_row,start_col,righthand)){
+            find_path(&map,start_row,start_col,start_border_side);
+        } else {
+            return 1;
+        }
     } else if (argc==5 && strcmp(argv[1],"--lpath")==0){
         printf("lpath");
     } else {
