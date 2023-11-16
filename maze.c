@@ -168,7 +168,18 @@ int finished(Map *map, int row, int col){
     } else {
         return 0;
     }
-}
+}/*
+int next_border(int border, int pos_row, int pos_col, int leftright){
+    if(leftright==righthand){
+        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
+            border = (border % 3) + 1;
+            return border;
+        } else { // hore nohami
+
+        }
+    }
+    return 0; //todo
+}*/
 void find_path(Map *map,int start_row,int start_col,int start_border_side){
     int pos_row = start_row;
     int pos_col = start_col;
@@ -188,7 +199,7 @@ void find_path(Map *map,int start_row,int start_col,int start_border_side){
                  } else if (border==2){
                     border=3;
                  } else if(border==1){
-                    border =2;
+                    border =3;
                  }
             }
             printf("\nBorder: %d\n",border);
@@ -199,7 +210,14 @@ void find_path(Map *map,int start_row,int start_col,int start_border_side){
                     border = top_bot_side;
                 }
             } else {
-                border = (border % 3) + 1;
+                // border = (border % 3) + 1;
+                if(border == 3){
+                    border =1;
+                } else if (border==2){
+                    border=3;
+                } else if(border==1){
+                    border =3;
+                }
             }
             printf("\nBorder: %d\n", border);
         }
@@ -218,11 +236,14 @@ void find_path(Map *map,int start_row,int start_col,int start_border_side){
                 border=top_bot_side;
             } else if(border==left_side){
                 pos_col--;
-                border=right_side;
+                //border=right_side;
             } else if (border ==top_bot_side){
                 pos_row--;
                 border=right_side;
             }    
+        }
+        if(pos_row==2 && pos_col ==7){
+            printf("skoro doma");
         }
         printf("ROW %d COL %d\n",pos_row,pos_col);
     }
