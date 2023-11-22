@@ -41,7 +41,7 @@ int map_dest(Map *map){
     map->cols=0;
     map->rows=0;
     return 1;
-}
+}/*
 int print_map(Map *map){
         printf("ROWS: %d\n",map->rows);
         printf("COLS: %d\n",map->cols);
@@ -51,7 +51,7 @@ int print_map(Map *map){
         }
         printf("\n");
         return 1;
-}
+}*/
 int read_file(char *filename,int *rows,int *cols,int *number,int *index){
     FILE *pFile = fopen(filename,"r");
     if(pFile == NULL){
@@ -83,6 +83,7 @@ bool isborder(Map *map, int r, int c, int border){
     }
     return 0;
 }
+/*
 int print_map_binary(Map *map) {
     printf("Binary representation of MAPA:\n");
     for (int i = 0; i < map->rows * map->cols; i++) {
@@ -95,7 +96,7 @@ int print_map_binary(Map *map) {
         printf(" ");
     }
     return 0;
-}
+}*/
 int check_file_cells(int index,int rows, int cols){
     if(index != rows*cols){
         return 0;
@@ -119,20 +120,49 @@ int check_borders(Map *map){
     return 1;
 }
 int start_border(Map *map, int r, int c, int leftright){
-    if (leftright == righthand) {
-        if ((r % 2 == 0 && c == 1) || (r % 2 == 1 && c == map->cols)) {
+    if(leftright == righthand){
+        if(r % 2 == 1 && c == 1){
+            // printf("1 prava");
             return right_side;
-        } else if ((r % 2 == 1 && c == 1) || (r == map->rows)) {
+        } else if (r % 2 == 0 && c==1){
+            // printf("2 dolni");
             return top_bot_side;
-        }
-    } else if (leftright == lefthand) {
-        if ((r % 2 == 0 && c == 1) || (r % 2 == 1 && c == map->cols)) {
+        } else if (c == map->cols && r % 2 == 1){
+            // printf("5 horni");
+            return top_bot_side;
+        } else if (r % 2 == 0 && c == map->cols) {
+            // printf("6 leva");
             return left_side;
-        } else if ((r % 2 == 1 && c == 1) || (r == map->rows)) {
+        } else if (r == 1){
+            // printf("3 leva");
+            return left_side;
+        } else if (r == map->rows){
+            // printf("4 prava");
+            return right_side;
+        }
+    } else if (leftright ==lefthand){
+        if(r % 2 == 1 && c == 1){
+            // printf("1 leva");
+            return left_side;
+        } else if (r % 2 == 0 && c==1){
+            // printf("2 horni");
+            return right_side; //toto fix
+        } else if (c == map->cols && r % 2 == 1){
+            // printf("5 dolni");
             return top_bot_side;
+        } else if (r % 2 == 0 && c == map->cols) {
+            // printf("6 prava");
+            return right_side;
+        } else if (r == 1){
+            // printf("3 prava");
+            return right_side;
+        } else if (r == map->rows){
+            // printf("4 leva");
+            return left_side;
         }
     }
     return 0;
+
 }
 int finished(Map *map, int row, int col){
     if(row > map->rows || row < 1 || col > map->cols || col < 1){
@@ -140,81 +170,104 @@ int finished(Map *map, int row, int col){
     } else {
         return 0;
     }
-}/*
-int next_border(int border, int pos_row, int pos_col, int leftright){
-    printf("border %d\n",border);
+}
+int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright){
     if(leftright==righthand){
-        if(border==left_side){
-            border=right_side;
-        } else if(border==right_side){
-            border=left_side;
+        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
+            // border=(border%3)+1;
+            if(border==top_bot_side){
+                border=right_side;
+            } else if (border==right_side){
+                border=top_bot_side;
+            } else if (border==left_side){
+                border=left_side;
+            }
+            return border;
+        } else { // hore nohami
+            if(border==top_bot_side){
+                border=left_side;
+            } else if (border==right_side){
+                border=right_side;
+            } else if (border==left_side){
+                border=top_bot_side;
+            }
+            return border;
         }
+    } else if (leftright==lefthand){
+            if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { 
+            if(border==top_bot_side){
+                border=left_side;
+            } else if (border==right_side){
+                border=right_side;
+            } else if (border==left_side){
+                border=top_bot_side;
+            }
+            return border;
+        } else { 
+            if(border==top_bot_side){
+                border=right_side;
+            } else if (border==right_side){
+                border=top_bot_side;
+            } else if (border==left_side){
+                border=left_side;
+            }
+            return border;
+        }
+    } else {
+        return 0; // zbytocne asi
+    }
+}
+int next_border(int border, int pos_row, int pos_col, int leftright){
+    if(leftright==righthand){
+        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
+            if(border==right_side){
+                return left_side;
+            } else {
+                border=((border%3)+2);
+                return border;
+            }
+        } else { // hore nohami
+            border=(border%3)+1;
+            return border;
+        }
+    } else if (leftright==lefthand){
         if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
             border=(border%3)+1;
             return border;
         } else { // hore nohami
-            border--;
-            if(border==0){
-                border=3;
+            if(border==right_side){
+                return left_side;
+            } else {
+                border=((border%3)+2);
+                return border;
             }
-            return border;
         }
+    } else {
+        return 0; //zbytocne asi
     }
-    return 0; //todo
-}*/
-void move_position(int *pos_row, int *pos_col,int *border){
-        if((*pos_col % 2 == 1 && *pos_row % 2 == 0) || (*pos_col % 2 == 0 && *pos_row % 2 == 1)){ //trojuholnik normalny
-            if(*border==right_side){
-                (*pos_col)++;
-            } else if(*border==left_side){
-                (*pos_col)--;
-            } else if (*border ==top_bot_side){
-                (*pos_row)++;
-                *border=left_side;
-            }
-        } else { // trojuholnik hore nohami
-            if(*border==right_side){
-                (*pos_col)++;
-                *border=top_bot_side;
-            } else if(*border==left_side){
-                (*pos_col)--;
-                //border=right_side;
-            } else if (*border ==top_bot_side){
-                (*pos_row)--;
-                *border=right_side;
-            }    
-        }
 }
-void find_path(Map *map,int start_row,int start_col,int start_border_side){
+void move_position(int *pos_row, int *pos_col,int border){            
+            if(border==right_side){
+                (*pos_col)++;
+            } else if(border==left_side){
+                (*pos_col)--;
+            } else if (border ==top_bot_side && ((*pos_col % 2 == 1 && *pos_row % 2 == 0) || (*pos_col % 2 == 0 && *pos_row % 2 == 1))){
+                (*pos_row)++;
+            } else if (border ==top_bot_side && ((*pos_col % 2 == 1 && *pos_row % 2 == 1) || (*pos_col % 2 == 0 && *pos_row % 2 == 0))){
+                (*pos_row)--;  
+            }
+}
+void find_path(Map *map,int start_row,int start_col,int start_border_side,int leftright){
     int pos_row = start_row;
     int pos_col = start_col;
     int border = start_border_side;
-    printf("BORDER: %d\n",border);
-    printf("%d,%d",start_row,start_col);
     while(!finished(map, pos_row,pos_col)){
-        while(isborder(map,pos_row-1,pos_col-1,border)){
-        if ((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) {
-                border--;
-                if (border == 0) {
-                    border = top_bot_side;
-                }
-            } else {
-                // border = (border % 3) + 1;
-                if(border == 3){
-                    border =1;
-                } else if (border==2){
-                    border=3;
-                } else if(border==1){
-                    border =3;
-                }
-            }
-            printf("\nBorder: %d\n", border);
-        }
-        move_position(&pos_row,&pos_col,&border);
-        if(pos_row==2 && pos_col ==7){
-            printf("skoro doma");
-        }
         printf("%d,%d\n",pos_row,pos_col);
+        while(isborder(map,pos_row-1,pos_col-1,border)){
+            border = next_border(border,pos_row,pos_col,leftright);
+        }
+        move_position(&pos_row,&pos_col,border);
+        border = triangle_up_down_changed(border,pos_row,pos_col,leftright);
     }
 }
 int main(int argc, char *argv[]){
@@ -225,11 +278,15 @@ int main(int argc, char *argv[]){
     int number[100];
     char vstup[100]={0};
     int start_border_side = 0;
+    if(argc>1 && strcmp(argv[1], "--help")==0){
+        print_help();
+        return 0;
+    }
     if(argc == 5){
         strcpy(vstup,argv[4]);
     } else if (argc == 3){
         strcpy(vstup,argv[2]);
-    }
+    } 
     if(!read_file(vstup,&rows,&cols,number,&index)){
         fprintf(stderr,"Failed to read from file.");
         return 1;
@@ -239,9 +296,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
     map_init(&map, rows,cols,number);
-    if(argc>1 && strcmp(argv[1], "--help")==0){
-        print_help();
-    } else if (argc==3 && strcmp(argv[1], "--test")==0){
+    if (argc==3 && strcmp(argv[1], "--test")==0){
         if(!check_file_cells(index,rows,cols)){
             printf("Invalid\n");
             return 1;
@@ -251,17 +306,23 @@ int main(int argc, char *argv[]){
             printf("Valid\n");
         }
     } else if (argc==5 && strcmp(argv[1],"--rpath")==0){
-        print_map(&map);
-        print_map_binary(&map);
+        // print_map(&map);
+        // print_map_binary(&map);
         int start_row = atoi(argv[2]);
         int start_col = atoi(argv[3]);
         if((start_border_side = start_border(&map,start_row,start_col,righthand))){
-            find_path(&map,start_row,start_col,start_border_side);
+            find_path(&map,start_row,start_col,start_border_side,righthand);
         } else {
             return 1;
         }
     } else if (argc==5 && strcmp(argv[1],"--lpath")==0){
-        printf("lpath");
+        int start_row = atoi(argv[2]);
+        int start_col = atoi(argv[3]);
+        if((start_border_side = start_border(&map,start_row,start_col,lefthand))){
+            find_path(&map,start_row,start_col,start_border_side,lefthand);
+        } else {
+            return 1;
+        }
     } else {
         fprintf(stderr,"Invalid arguments. Use --help for more infomation.");
         return 1;
