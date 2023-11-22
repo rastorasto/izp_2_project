@@ -119,45 +119,17 @@ int check_borders(Map *map){
     return 1;
 }
 int start_border(Map *map, int r, int c, int leftright){
-    if(leftright == righthand){
-        if(r % 2 == 0 && c == 1){
-            // printf("1 prava");
+    if (leftright == righthand) {
+        if ((r % 2 == 0 && c == 1) || (r % 2 == 1 && c == map->cols)) {
             return right_side;
-        } else if (r % 2 == 1 && c==1){
-            // printf("2 dolni");
+        } else if ((r % 2 == 1 && c == 1) || (r == map->rows)) {
             return top_bot_side;
-        } else if (c == map->cols && r % 2 == 1){
-            // printf("5 horni");
-            return top_bot_side;
-        } else if (r % 2 == 0 && c == map->cols) {
-            // printf("6 leva");
-            return left_side;
-        } else if (r == 1){
-            // printf("3 leva");
-            return left_side;
-        } else if (r == map->rows){
-            // printf("4 prava");
-            return right_side;
         }
-    } else if (leftright ==righthand){
-        if(r % 2 == 0 && c == 1){
-            // printf("1 leva");
+    } else if (leftright == lefthand) {
+        if ((r % 2 == 0 && c == 1) || (r % 2 == 1 && c == map->cols)) {
             return left_side;
-        } else if (r % 2 == 1 && c==1){
-            // printf("2 horni");
+        } else if ((r % 2 == 1 && c == 1) || (r == map->rows)) {
             return top_bot_side;
-        } else if (c == map->cols && r % 2 == 1){
-            // printf("5 dolni");
-            return top_bot_side;
-        } else if (r % 2 == 0 && c == map->cols) {
-            // printf("6 prava");
-            return right_side;
-        } else if (r == 1){
-            // printf("3 prava");
-            return right_side;
-        } else if (r == map->rows){
-            // printf("4 leva");
-            return left_side;
         }
     }
     return 0;
@@ -170,40 +142,57 @@ int finished(Map *map, int row, int col){
     }
 }/*
 int next_border(int border, int pos_row, int pos_col, int leftright){
+    printf("border %d\n",border);
     if(leftright==righthand){
+        if(border==left_side){
+            border=right_side;
+        } else if(border==right_side){
+            border=left_side;
+        }
         if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
-            border = (border % 3) + 1;
+            border=(border%3)+1;
             return border;
         } else { // hore nohami
-
+            border--;
+            if(border==0){
+                border=3;
+            }
+            return border;
         }
     }
     return 0; //todo
 }*/
+void move_position(int *pos_row, int *pos_col,int *border){
+        if((*pos_col % 2 == 1 && *pos_row % 2 == 0) || (*pos_col % 2 == 0 && *pos_row % 2 == 1)){ //trojuholnik normalny
+            if(*border==right_side){
+                (*pos_col)++;
+            } else if(*border==left_side){
+                (*pos_col)--;
+            } else if (*border ==top_bot_side){
+                (*pos_row)++;
+                *border=left_side;
+            }
+        } else { // trojuholnik hore nohami
+            if(*border==right_side){
+                (*pos_col)++;
+                *border=top_bot_side;
+            } else if(*border==left_side){
+                (*pos_col)--;
+                //border=right_side;
+            } else if (*border ==top_bot_side){
+                (*pos_row)--;
+                *border=right_side;
+            }    
+        }
+}
 void find_path(Map *map,int start_row,int start_col,int start_border_side){
     int pos_row = start_row;
     int pos_col = start_col;
     int border = start_border_side;
     printf("BORDER: %d\n",border);
-    printf("START POS: %d %d",start_row,start_col);
+    printf("%d,%d",start_row,start_col);
     while(!finished(map, pos_row,pos_col)){
         while(isborder(map,pos_row-1,pos_col-1,border)){
-           /* if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)){
-                border--;
-                if(border==0){
-                    border=top_bot_side;
-                }
-            } else {
-                if(border == 3){
-                    border =1;
-                 } else if (border==2){
-                    border=3;
-                 } else if(border==1){
-                    border =3;
-                 }
-            }
-            printf("\nBorder: %d\n",border);
-        }*/
         if ((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) {
                 border--;
                 if (border == 0) {
@@ -221,31 +210,11 @@ void find_path(Map *map,int start_row,int start_col,int start_border_side){
             }
             printf("\nBorder: %d\n", border);
         }
-        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)){ //trojuholnik normalny
-            if(border==right_side){
-                pos_col++;
-            } else if(border==left_side){
-                pos_col--;
-            } else if (border ==top_bot_side){
-                pos_row++;
-                border=left_side;
-            }
-        } else { // trojuholnik hore nohami
-            if(border==right_side){
-                pos_col++;
-                border=top_bot_side;
-            } else if(border==left_side){
-                pos_col--;
-                //border=right_side;
-            } else if (border ==top_bot_side){
-                pos_row--;
-                border=right_side;
-            }    
-        }
+        move_position(&pos_row,&pos_col,&border);
         if(pos_row==2 && pos_col ==7){
             printf("skoro doma");
         }
-        printf("ROW %d COL %d\n",pos_row,pos_col);
+        printf("%d,%d\n",pos_row,pos_col);
     }
 }
 int main(int argc, char *argv[]){
