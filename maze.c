@@ -171,9 +171,16 @@ int finished(Map *map, int row, int col){
         return 0;
     }
 }
+int triangle_has_bottom(int row,int col){
+    if((col % 2 == 1 && row % 2 == 0) || (col % 2 == 0 && row % 2 == 1)){
+        return 1;
+    } else {
+        return 0;
+    }
+}
 int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright){
     if(leftright==righthand){
-        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
+        if(triangle_has_bottom(pos_row,pos_col)) { //normalny
             // border=(border%3)+1;
             if(border==top_bot_side){
                 border=right_side;
@@ -194,7 +201,7 @@ int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright
             return border;
         }
     } else if (leftright==lefthand){
-            if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { 
+            if(triangle_has_bottom(pos_row,pos_col)) { 
             if(border==top_bot_side){
                 border=left_side;
             } else if (border==right_side){
@@ -219,7 +226,7 @@ int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright
 }
 int next_border(int border, int pos_row, int pos_col, int leftright){
     if(leftright==righthand){
-        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
+        if(triangle_has_bottom(pos_row,pos_col)) { //normalny
             if(border==right_side){
                 return left_side;
             } else {
@@ -231,7 +238,7 @@ int next_border(int border, int pos_row, int pos_col, int leftright){
             return border;
         }
     } else if (leftright==lefthand){
-        if((pos_col % 2 == 1 && pos_row % 2 == 0) || (pos_col % 2 == 0 && pos_row % 2 == 1)) { //normalny
+        if(triangle_has_bottom(pos_row,pos_col)) { //normalny
             border=(border%3)+1;
             return border;
         } else { // hore nohami
@@ -247,15 +254,15 @@ int next_border(int border, int pos_row, int pos_col, int leftright){
     }
 }
 void move_position(int *pos_row, int *pos_col,int border){            
-            if(border==right_side){
-                (*pos_col)++;
-            } else if(border==left_side){
-                (*pos_col)--;
-            } else if (border ==top_bot_side && ((*pos_col % 2 == 1 && *pos_row % 2 == 0) || (*pos_col % 2 == 0 && *pos_row % 2 == 1))){
-                (*pos_row)++;
-            } else if (border ==top_bot_side && ((*pos_col % 2 == 1 && *pos_row % 2 == 1) || (*pos_col % 2 == 0 && *pos_row % 2 == 0))){
-                (*pos_row)--;  
-            }
+    if(border==right_side){
+        (*pos_col)++;
+    } else if(border==left_side){
+        (*pos_col)--;
+    } else if (border ==top_bot_side && triangle_has_bottom(*pos_row,*pos_col)){
+        (*pos_row)++;
+    } else if (border ==top_bot_side && !triangle_has_bottom(*pos_row,*pos_col)){
+        (*pos_row)--;  
+    }
 }
 void find_path(Map *map,int start_row,int start_col,int start_border_side,int leftright){
     int pos_row = start_row;
@@ -305,7 +312,7 @@ int main(int argc, char *argv[]){
         } else {
             printf("Valid\n");
         }
-    } else if (argc==5 && strcmp(argv[1],"--rpath")==0){
+    } else if (argc==5 && strcmp(argv[1],"--rpath")==0){        //spojit --rpath --lpath do jedneho ifu
         // print_map(&map);
         // print_map_binary(&map);
         int start_row = atoi(argv[2]);
