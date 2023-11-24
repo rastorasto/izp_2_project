@@ -143,16 +143,16 @@ int start_border(Map *map, int r, int c, int leftright){
     } else if (leftright ==lefthand){
         if(r % 2 == 1 && c == 1){
             // printf("1 leva");
-            return left_side;
+            return top_bot_side;
         } else if (r % 2 == 0 && c==1){
             // printf("2 horni");
-            return right_side; //toto fix
+            return right_side; 
         } else if (c == map->cols && r % 2 == 1){
             // printf("5 dolni");
-            return top_bot_side;
+            return left_side;
         } else if (r % 2 == 0 && c == map->cols) {
             // printf("6 prava");
-            return right_side;
+            return top_bot_side;
         } else if (r == 1){
             // printf("3 prava");
             return right_side;
