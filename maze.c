@@ -120,49 +120,50 @@ int check_borders(Map *map){
     return 1;
 }
 int start_border(Map *map, int r, int c, int leftright){
-    if(leftright == righthand){
         if(r % 2 == 1 && c == 1){
+            if(leftright==righthand){
+                return right_side;
+            } else {
+                return top_bot_side;
+            }
             // printf("1 prava");
-            return right_side;
         } else if (r % 2 == 0 && c==1){
             // printf("2 dolni");
-            return top_bot_side;
+            if(leftright==righthand){
+                return top_bot_side;
+            } else {
+                return right_side;
+            }
         } else if (c == map->cols && r % 2 == 1){
             // printf("5 horni");
-            return top_bot_side;
+            if(leftright==right_side){
+                return top_bot_side;
+            } else {
+                return left_side;
+            }
         } else if (r % 2 == 0 && c == map->cols) {
             // printf("6 leva");
-            return left_side;
+            if(leftright==righthand){
+                return left_side;
+            } else {
+                return top_bot_side;
+            }
         } else if (r == 1){
             // printf("3 leva");
-            return left_side;
+            if(leftright==righthand){
+                return left_side;
+            } else {
+                return right_side;
+            }
         } else if (r == map->rows){
             // printf("4 prava");
-            return right_side;
+            if(leftright==righthand){
+                return right_side;
+            } else {
+                return left_side;
+            }
         }
-    } else if (leftright ==lefthand){
-        if(r % 2 == 1 && c == 1){
-            // printf("1 leva");
-            return top_bot_side;
-        } else if (r % 2 == 0 && c==1){
-            // printf("2 horni");
-            return right_side; 
-        } else if (c == map->cols && r % 2 == 1){
-            // printf("5 dolni");
-            return left_side;
-        } else if (r % 2 == 0 && c == map->cols) {
-            // printf("6 prava");
-            return top_bot_side;
-        } else if (r == 1){
-            // printf("3 prava");
-            return right_side;
-        } else if (r == map->rows){
-            // printf("4 leva");
-            return left_side;
-        }
-    }
-    return 0;
-
+        return 0;
 }
 int finished(Map *map, int row, int col){
     if(row > map->rows || row < 1 || col > map->cols || col < 1){
