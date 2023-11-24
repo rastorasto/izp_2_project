@@ -126,37 +126,37 @@ int start_border(Map *map, int r, int c, int leftright){
             } else {
                 return top_bot_side;
             }
-            // printf("1 prava");
+            // printf("1");
         } else if (r % 2 == 0 && c==1){
-            // printf("2 dolni");
+            // printf("2");
             if(leftright==righthand){
                 return top_bot_side;
             } else {
                 return right_side;
             }
         } else if (c == map->cols && r % 2 == 1){
-            // printf("5 horni");
+            // printf("5");
             if(leftright==right_side){
                 return top_bot_side;
             } else {
                 return left_side;
             }
         } else if (r % 2 == 0 && c == map->cols) {
-            // printf("6 leva");
+            // printf("6");
             if(leftright==righthand){
                 return left_side;
             } else {
                 return top_bot_side;
             }
         } else if (r == 1){
-            // printf("3 leva");
+            // printf("3");
             if(leftright==righthand){
                 return left_side;
             } else {
                 return right_side;
             }
         } else if (r == map->rows){
-            // printf("4 prava");
+            // printf("4");
             if(leftright==righthand){
                 return right_side;
             } else {
@@ -216,7 +216,7 @@ int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright
                 border=right_side;
             } else if (border==right_side){
                 border=top_bot_side;
-            } else if (border==left_side){
+            } else if (border==left_side){ 
                 border=left_side;
             }
             return border;
@@ -305,34 +305,39 @@ int main(int argc, char *argv[]){
     }
     map_init(&map, rows,cols,number);
     if (argc==3 && strcmp(argv[1], "--test")==0){
-        if(!check_file_cells(index,rows,cols)){
+        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
             printf("Invalid\n");
+            map_dest(&map);
             return 1;
-        } else if (!check_borders(&map)){
-            printf("Invalid\n");
         } else {
             printf("Valid\n");
         }
-    } else if (argc==5 && strcmp(argv[1],"--rpath")==0){        //spojit --rpath --lpath do jedneho ifu
-        // print_map(&map);
-        // print_map_binary(&map);
+    } else if (argc==5){
         int start_row = atoi(argv[2]);
         int start_col = atoi(argv[3]);
-        if((start_border_side = start_border(&map,start_row,start_col,righthand))){
-            find_path(&map,start_row,start_col,start_border_side,righthand);
+        if(strcmp(argv[1],"--rpath")==0){
+            start_border_side = start_border(&map,start_row,start_col,righthand);
+            if(start_border_side){
+                find_path(&map,start_row,start_col,start_border_side,righthand);
+            } else {
+                map_dest(&map);
+                return 1;
+            }
+        } else if (strcmp(argv[1],"--lpath")==0){
+            start_border_side = start_border(&map,start_row,start_col,lefthand);
+            if(start_border_side){
+                find_path(&map,start_row,start_col,start_border_side,lefthand);
+            } else {
+                map_dest(&map);
+                return 1;
+            }
         } else {
-            return 1;
-        }
-    } else if (argc==5 && strcmp(argv[1],"--lpath")==0){
-        int start_row = atoi(argv[2]);
-        int start_col = atoi(argv[3]);
-        if((start_border_side = start_border(&map,start_row,start_col,lefthand))){
-            find_path(&map,start_row,start_col,start_border_side,lefthand);
-        } else {
+            map_dest(&map);
             return 1;
         }
     } else {
         fprintf(stderr,"Invalid arguments. Use --help for more infomation.");
+        map_dest(&map);
         return 1;
     }
     map_dest(&map);
