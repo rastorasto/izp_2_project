@@ -41,17 +41,7 @@ int map_dest(Map *map){
     map->cols=0;
     map->rows=0;
     return 1;
-}/*
-int print_map(Map *map){
-        printf("ROWS: %d\n",map->rows);
-        printf("COLS: %d\n",map->cols);
-        printf("MAPA: ");
-        for(int i=0;i<map->rows*map->cols;i++){
-            printf("%d ",map->cells[i]);
-        }
-        printf("\n");
-        return 1;
-}*/
+}
 int read_file(char *filename,int *rows,int *cols,int *number,int *index){
     FILE *pFile = fopen(filename,"r");
     if(pFile == NULL){
@@ -59,10 +49,17 @@ int read_file(char *filename,int *rows,int *cols,int *number,int *index){
         return 0;
     } else {
         fscanf(pFile,"%d %d",rows,cols);
-
+        char temp;
+        while((temp = fgetc(pFile)) != EOF){
+            if(temp >= '0' && temp <= '7'){
+                number[*index] = temp;
+                //*index = *index + 1;
+                (*index)++;
+            }
+        }/*
         while(fscanf(pFile,"%d",&number[*index]) != EOF){
             (*index)++;
-        }
+        }*/
         fclose(pFile);
         return 1;
     }
@@ -83,20 +80,6 @@ bool isborder(Map *map, int r, int c, int border){
     }
     return 0;
 }
-/*
-int print_map_binary(Map *map) {
-    printf("Binary representation of MAPA:\n");
-    for (int i = 0; i < map->rows * map->cols; i++) {
-            if(i%map->cols == 0){
-                printf("\n");
-            }
-        for (int bit = 2; bit >= 0; bit--) {
-            printf("%d ", (map->cells[i] >> bit) & 1);
-        }
-        printf(" ");
-    }
-    return 0;
-}*/
 int check_file_cells(int index,int rows, int cols){
     if(index != rows*cols){
         return 0;
@@ -119,11 +102,24 @@ int check_borders(Map *map){
     }
     return 1;
 }
+int can_start(Map *map,int r, int c){
+    if(c == 1 && !isborder(map, r-1,c-1,left_side)){
+        return 1;
+    } else if (c == map->cols && !isborder(map, r-1,c-1,right_side)){
+        return 1;
+    } else if ((r == 1 || r == map->rows) && c % 2 != 0 && !isborder(map, r-1,c-1,top_bot_side)){
+        return 1;
+    } else {
+        return 0;
+    }
+}
 int start_border(Map *map, int r, int c, int leftright){
         if(r % 2 == 1 && c == 1){
             if(leftright==righthand){
+
                 return right_side;
             } else {
+
                 return top_bot_side;
             }
             // printf("1");
@@ -295,6 +291,10 @@ int main(int argc, char *argv[]){
         int start_row = atoi(argv[2]);
         int start_col = atoi(argv[3]);
         if(strcmp(argv[1],"--rpath")==0){
+            if(!can_start(&map,start_row,start_col)){
+                map_dest(&map);
+                return 1;
+            }
             start_border_side = start_border(&map,start_row,start_col,righthand);
             if(start_border_side){
                 find_path(&map,start_row,start_col,start_border_side,righthand);
@@ -303,6 +303,10 @@ int main(int argc, char *argv[]){
                 return 1;
             }
         } else if (strcmp(argv[1],"--lpath")==0){
+            if(!can_start(&map,start_row,start_col)){
+                map_dest(&map);
+                return 1;
+            }
             start_border_side = start_border(&map,start_row,start_col,lefthand);
             if(start_border_side){
                 find_path(&map,start_row,start_col,start_border_side,lefthand);
