@@ -180,50 +180,28 @@ int triangle_has_bottom(int row,int col){
     }
 }
 int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright){
-    if(leftright==righthand){
-        if(triangle_has_bottom(pos_row,pos_col)) { //normalny
-            // border=(border%3)+1;
-            if(border==top_bot_side){
-                border=right_side;
-            } else if (border==right_side){
-                border=top_bot_side;
-            } else if (border==left_side){
-                border=left_side;
-            }
-            return border;
-        } else { // hore nohami
-            if(border==top_bot_side){
-                border=left_side;
-            } else if (border==right_side){
-                border=right_side;
-            } else if (border==left_side){
-                border=top_bot_side;
-            }
-            return border;
+    if((triangle_has_bottom(pos_row,pos_col) && leftright == righthand) || (!triangle_has_bottom(pos_row,pos_col) && leftright == lefthand)) { //normalny
+        // border=(border%3)+1;
+        if(border==top_bot_side){
+            border=right_side;
+        } else if (border==right_side){
+            border=top_bot_side;
+        } else if (border==left_side){
+            border=left_side;
         }
-    } else if (leftright==lefthand){
-            if(triangle_has_bottom(pos_row,pos_col)) { 
-            if(border==top_bot_side){
-                border=left_side;
-            } else if (border==right_side){
-                border=right_side;
-            } else if (border==left_side){
-                border=top_bot_side;
-            }
-            return border;
-        } else { 
-            if(border==top_bot_side){
-                border=right_side;
-            } else if (border==right_side){
-                border=top_bot_side;
-            } else if (border==left_side){ 
-                border=left_side;
-            }
-            return border;
+        return border;
+    } else if((triangle_has_bottom(pos_row,pos_col) && leftright == lefthand) || (!triangle_has_bottom(pos_row,pos_col) && leftright == righthand)) { 
+        if(border==top_bot_side){
+            border=left_side;
+        } else if (border==right_side){
+            border=right_side;
+        } else if (border==left_side){
+            border=top_bot_side;
         }
-    } else {
-        return 0; // zbytocne asi
-    }
+        return border;
+        } else {
+            return 0; // zbytocne asi
+        }
 }
 int next_border(int border, int pos_row, int pos_col, int leftright){
     if(leftright==righthand){
@@ -289,6 +267,8 @@ int main(int argc, char *argv[]){
     if(argc>1 && strcmp(argv[1], "--help")==0){
         print_help();
         return 0;
+    } else if (argc<3){
+        return 1;
     }
     if(argc == 5){
         strcpy(vstup,argv[4]);
@@ -307,7 +287,6 @@ int main(int argc, char *argv[]){
     if (argc==3 && strcmp(argv[1], "--test")==0){
         if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
             printf("Invalid\n");
-            map_dest(&map);
             return 1;
         } else {
             printf("Valid\n");
