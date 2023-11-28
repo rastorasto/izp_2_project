@@ -265,47 +265,27 @@ int main(int argc, char *argv[]){
     int number[100];
     char vstup[100]={0};
     int start_border_side = 0;
-    if(argc>1 && strcmp(argv[1], "--help")==0){
-        print_help();
-        return 0;
-    } else if (argc<3){
-        return 1;
-    }
-    if(argc == 5){
+    if(argc==5){
         strcpy(vstup,argv[4]);
-    } else if (argc == 3){
-        strcpy(vstup,argv[2]);
-    } 
-    if(!read_file(vstup,&rows,&cols,number,&index)){
-        fprintf(stderr,"Failed to read from file.");
-        return 1;
-    }
-    if(!map_alloc(&map, rows,cols)){
-        fprintf(stderr,"Failed to allocate cells.");
-        return 1;
-    }
-    map_init(&map, rows,cols,number);
-    if (argc==3 && strcmp(argv[1], "--test")==0){
-        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
-            printf("Invalid\n");
-            return 1;
-        } else {
-            printf("Valid\n");
-        }
-    } else if (argc==5){
         int start_row = parse_args(argv[2]);
         int start_col = parse_args(argv[3]);
         if(start_row == -1 || start_col == -1){
-            map_dest(&map);
             fprintf(stderr,"Invalid arguments.");
             return 1;
         }
-        // int start_row = atoi(argv[2]);
-        // int start_col = atoi(argv[3]);
+        if(!read_file(vstup,&rows,&cols,number,&index)){
+            fprintf(stderr,"Failed to read from file.");
+            return 1;
+        }
+        if(!map_alloc(&map, rows,cols)){
+            fprintf(stderr,"Failed to allocate cells.");
+            return 1;
+        }
         if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
             printf("Invalid\n");
             return 1;
         }
+        map_init(&map, rows,cols,number);
         if(strcmp(argv[1],"--rpath")==0){
             if(!can_start(&map,start_row,start_col)){
                 fprintf(stderr,"Invalid start cell.");
@@ -337,11 +317,28 @@ int main(int argc, char *argv[]){
             map_dest(&map);
             return 1;
         }
+    } else if (argc==3 & strcmp(argv[1], "--test")==0){
+        strcpy(vstup,argv[2]);
+        if(!read_file(vstup,&rows,&cols,number,&index)){
+            fprintf(stderr,"Failed to read from file.");
+            return 1;
+        }
+        if(!map_alloc(&map, rows,cols)){
+            fprintf(stderr,"Failed to allocate cells.");
+            return 1;
+        }
+        map_init(&map, rows,cols,number);
+        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
+            printf("Invalid\n");
+            return 1;
+        } else {
+            printf("Valid\n");
+        }
+    } else if (argc==2 && strcmp(argv[1], "--help")==0){
+        print_help();
+        return 0;
     } else {
         fprintf(stderr,"Invalid arguments. Use --help for more infomation.");
-        map_dest(&map);
         return 1;
     }
-    map_dest(&map);
-    return 0;
 }
