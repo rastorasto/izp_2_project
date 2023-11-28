@@ -121,7 +121,7 @@ int main(int argc, char *argv[]){
 int parse_args(char *value){
     char *endptr;
     long long_value = strtol(value,&endptr,0);
-    if(*endptr != '\0' || value == endptr || !(long_value >= 0 && long_value <= 9)){
+    if(*endptr != '\0' || value == endptr || !(long_value >= 0)){
         return -1;
     } else {
         return (int) long_value;
