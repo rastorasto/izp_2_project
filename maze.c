@@ -7,6 +7,15 @@
 #define left_side 1
 #define right_side 2
 #define top_bot_side 3
+int parse_args(char *value){
+    char *endptr;
+    long long_value = strtol(value,&endptr,0);
+    if(*endptr != '\0' || value == endptr || !(long_value >= 0 && long_value <= 9)){
+        return -1;
+    } else {
+        return (int) long_value;
+    }
+}
 void print_help(){
     printf("Use --test file.txt to test the map.\n");
     printf("Use --rpath R C file.txt for searching with right hand rule.\n");
@@ -53,13 +62,9 @@ int read_file(char *filename,int *rows,int *cols,int *number,int *index){
         while((temp = fgetc(pFile)) != EOF){
             if(temp >= '0' && temp <= '7'){
                 number[*index] = temp;
-                //*index = *index + 1;
                 (*index)++;
             }
-        }/*
-        while(fscanf(pFile,"%d",&number[*index]) != EOF){
-            (*index)++;
-        }*/
+        }
         fclose(pFile);
         return 1;
     }
@@ -288,10 +293,22 @@ int main(int argc, char *argv[]){
             printf("Valid\n");
         }
     } else if (argc==5){
-        int start_row = atoi(argv[2]);
-        int start_col = atoi(argv[3]);
+        int start_row = parse_args(argv[2]);
+        int start_col = parse_args(argv[3]);
+        if(start_row == -1 || start_col == -1){
+            map_dest(&map);
+            fprintf(stderr,"Invalid arguments.");
+            return 1;
+        }
+        // int start_row = atoi(argv[2]);
+        // int start_col = atoi(argv[3]);
+        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
+            printf("Invalid\n");
+            return 1;
+        }
         if(strcmp(argv[1],"--rpath")==0){
             if(!can_start(&map,start_row,start_col)){
+                fprintf(stderr,"Invalid start cell.");
                 map_dest(&map);
                 return 1;
             }
@@ -305,12 +322,14 @@ int main(int argc, char *argv[]){
         } else if (strcmp(argv[1],"--lpath")==0){
             if(!can_start(&map,start_row,start_col)){
                 map_dest(&map);
+                fprintf(stderr,"Invalid start cell.");
                 return 1;
             }
             start_border_side = start_border(&map,start_row,start_col,lefthand);
             if(start_border_side){
                 find_path(&map,start_row,start_col,start_border_side,lefthand);
             } else {
+                fprintf(stderr,"Failed to get start border side.");
                 map_dest(&map);
                 return 1;
             }
