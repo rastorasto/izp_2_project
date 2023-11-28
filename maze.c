@@ -7,6 +7,117 @@
 #define left_side 1
 #define right_side 2
 #define top_bot_side 3
+#define MAX_FILENAME_LENGTH 100
+#define MAX_MAP_CELLS 100
+typedef struct {
+    int rows;
+    int cols;
+    unsigned char *cells;
+} Map;
+
+int parse_args(char *value);
+void print_help();
+int map_alloc(Map *map, int rows, int cols);
+int map_init(Map *map, int rows, int cols, int *cells_values);
+int map_dest(Map *map);
+int read_file(char *filename,int *rows, int *cols, int *cells_values, int *border);
+bool isborder(Map *map, int r, int c, int border);
+int check_file_cells(int index, int rows, int cols);
+int check_borders(Map *map);
+int can_start(Map *map, int r, int c);
+int start_border(Map *map, int r, int c, int leftright);
+int finished(Map *map, int row, int col);
+int triangle_has_bottom(int rows, int col);
+int tirangle_up_down_changed(int row, int col);
+int next_border(int border, int pos_row, int pos_col, int leftright);
+void move_position(int *pos_row, int *pos_col, int border);
+void find_path(Map *map, int start_row, int start_col, int start_border_side, int leftright);
+
+int main(int argc, char *argv[]){
+    Map map;
+    int rows = 0;
+    int cols = 0;
+    int index = 0;
+    int cells_values[MAX_MAP_CELLS] = {0};
+    char filename[MAX_FILENAME_LENGTH] = {0};
+    int start_border_side = 0;
+    if(argc==5){
+        strcpy(filename,argv[4]);
+        int start_row = parse_args(argv[2]);
+        int start_col = parse_args(argv[3]);
+        if(start_row == -1 || start_col == -1){
+            fprintf(stderr,"Invalid arguments.");
+            return 1;
+        }
+        if(!read_file(filename,&rows,&cols,cells_values,&index)){
+            fprintf(stderr,"Failed to read from file.");
+            return 1;
+        }
+        if(!map_alloc(&map, rows,cols)){
+            fprintf(stderr,"Failed to allocate cells.");
+            return 1;
+        }
+        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
+            printf("Invalid\n");
+            return 1;
+        }
+        map_init(&map, rows,cols,cells_values);
+        if(strcmp(argv[1],"--rpath")==0){
+            if(!can_start(&map,start_row,start_col)){
+                fprintf(stderr,"Invalid start cell.");
+                map_dest(&map);
+                return 1;
+            }
+            start_border_side = start_border(&map,start_row,start_col,righthand);
+            if(start_border_side){
+                find_path(&map,start_row,start_col,start_border_side,righthand);
+            } else {
+                map_dest(&map);
+                return 1;
+            }
+        } else if (strcmp(argv[1],"--lpath")==0){
+            if(!can_start(&map,start_row,start_col)){
+                map_dest(&map);
+                fprintf(stderr,"Invalid start cell.");
+                return 1;
+            }
+            start_border_side = start_border(&map,start_row,start_col,lefthand);
+            if(start_border_side){
+                find_path(&map,start_row,start_col,start_border_side,lefthand);
+            } else {
+                fprintf(stderr,"Failed to get start border side.");
+                map_dest(&map);
+                return 1;
+            }
+        } else {
+            map_dest(&map);
+            return 1;
+        }
+    } else if (argc==3 && strcmp(argv[1], "--test")==0){
+        strcpy(filename,argv[2]);
+        if(!read_file(filename,&rows,&cols,cells_values,&index)){
+            fprintf(stderr,"Failed to read from file.");
+            return 1;
+        }
+        if(!map_alloc(&map, rows,cols)){
+            fprintf(stderr,"Failed to allocate cells.");
+            return 1;
+        }
+        map_init(&map, rows,cols,cells_values);
+        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
+            printf("Invalid\n");
+            return 1;
+        } else {
+            printf("Valid\n");
+        }
+    } else if (argc==2 && strcmp(argv[1], "--help")==0){
+        print_help();
+        return 0;
+    } else {
+        fprintf(stderr,"Invalid arguments. Use --help for more infomation.");
+        return 1;
+    }
+}
 int parse_args(char *value){
     char *endptr;
     long long_value = strtol(value,&endptr,0);
@@ -22,11 +133,6 @@ void print_help(){
     printf("Use --lpath R C file.txt for searching with left hand rule.\n");
     printf("R stands for number of rows and C stands for number of collumns.\n");
 }
-typedef struct {
-    int rows;
-    int cols;
-    unsigned char *cells;
-} Map;
 int map_alloc(Map *map,int rows, int cols){
     map->rows = 0;
     map->cols = 0;
@@ -37,11 +143,11 @@ int map_alloc(Map *map,int rows, int cols){
     }
     return 1;
 }
-int map_init(Map *map,int rows, int cols,int *number){
+int map_init(Map *map,int rows, int cols,int *cells_values){
     map->rows=rows;
     map->cols=cols;
     for(int i=0; i < rows*cols;i++){
-        map->cells[i]=(unsigned char)number[i];
+        map->cells[i]=(unsigned char)cells_values[i];
     }
     return 1;
 }
@@ -51,17 +157,16 @@ int map_dest(Map *map){
     map->rows=0;
     return 1;
 }
-int read_file(char *filename,int *rows,int *cols,int *number,int *index){
+int read_file(char *filename,int *rows,int *cols,int *cells_values,int *index){
     FILE *pFile = fopen(filename,"r");
     if(pFile == NULL){
-        fclose(pFile);
         return 0;
     } else {
         fscanf(pFile,"%d %d",rows,cols);
         char temp;
         while((temp = fgetc(pFile)) != EOF){
             if(temp >= '0' && temp <= '7'){
-                number[*index] = temp;
+                cells_values[*index] = temp;
                 (*index)++;
             }
         }
@@ -191,7 +296,7 @@ int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright
             border=left_side;
         }
         return border;
-    } else if((triangle_has_bottom(pos_row,pos_col) && leftright == lefthand) || (!triangle_has_bottom(pos_row,pos_col) && leftright == righthand)) { 
+    } else/* if((triangle_has_bottom(pos_row,pos_col) && leftright == lefthand) || (!triangle_has_bottom(pos_row,pos_col) && leftright == righthand)) */{ 
         if(border==top_bot_side){
             border=left_side;
         } else if (border==right_side){
@@ -200,9 +305,9 @@ int triangle_up_down_changed(int border, int pos_row, int pos_col, int leftright
             border=top_bot_side;
         }
         return border;
-        } else {
+        } /*else {
             return 0; // zbytocne asi
-        }
+        }*/
 }
 int next_border(int border, int pos_row, int pos_col, int leftright){
     if(leftright==righthand){
@@ -255,90 +360,5 @@ void find_path(Map *map,int start_row,int start_col,int start_border_side,int le
         }
         move_position(&pos_row,&pos_col,border);
         border = triangle_up_down_changed(border,pos_row,pos_col,leftright);
-    }
-}
-int main(int argc, char *argv[]){
-    Map map;
-    int rows=0;
-    int cols=0;
-    int index = 0;
-    int number[100];
-    char vstup[100]={0};
-    int start_border_side = 0;
-    if(argc==5){
-        strcpy(vstup,argv[4]);
-        int start_row = parse_args(argv[2]);
-        int start_col = parse_args(argv[3]);
-        if(start_row == -1 || start_col == -1){
-            fprintf(stderr,"Invalid arguments.");
-            return 1;
-        }
-        if(!read_file(vstup,&rows,&cols,number,&index)){
-            fprintf(stderr,"Failed to read from file.");
-            return 1;
-        }
-        if(!map_alloc(&map, rows,cols)){
-            fprintf(stderr,"Failed to allocate cells.");
-            return 1;
-        }
-        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
-            printf("Invalid\n");
-            return 1;
-        }
-        map_init(&map, rows,cols,number);
-        if(strcmp(argv[1],"--rpath")==0){
-            if(!can_start(&map,start_row,start_col)){
-                fprintf(stderr,"Invalid start cell.");
-                map_dest(&map);
-                return 1;
-            }
-            start_border_side = start_border(&map,start_row,start_col,righthand);
-            if(start_border_side){
-                find_path(&map,start_row,start_col,start_border_side,righthand);
-            } else {
-                map_dest(&map);
-                return 1;
-            }
-        } else if (strcmp(argv[1],"--lpath")==0){
-            if(!can_start(&map,start_row,start_col)){
-                map_dest(&map);
-                fprintf(stderr,"Invalid start cell.");
-                return 1;
-            }
-            start_border_side = start_border(&map,start_row,start_col,lefthand);
-            if(start_border_side){
-                find_path(&map,start_row,start_col,start_border_side,lefthand);
-            } else {
-                fprintf(stderr,"Failed to get start border side.");
-                map_dest(&map);
-                return 1;
-            }
-        } else {
-            map_dest(&map);
-            return 1;
-        }
-    } else if (argc==3 & strcmp(argv[1], "--test")==0){
-        strcpy(vstup,argv[2]);
-        if(!read_file(vstup,&rows,&cols,number,&index)){
-            fprintf(stderr,"Failed to read from file.");
-            return 1;
-        }
-        if(!map_alloc(&map, rows,cols)){
-            fprintf(stderr,"Failed to allocate cells.");
-            return 1;
-        }
-        map_init(&map, rows,cols,number);
-        if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
-            printf("Invalid\n");
-            return 1;
-        } else {
-            printf("Valid\n");
-        }
-    } else if (argc==2 && strcmp(argv[1], "--help")==0){
-        print_help();
-        return 0;
-    } else {
-        fprintf(stderr,"Invalid arguments. Use --help for more infomation.");
-        return 1;
     }
 }
