@@ -57,11 +57,11 @@ int main(int argc, char *argv[]){
             fprintf(stderr,"Failed to allocate cells.");
             return 1;
         }
+        map_init(&map, rows,cols,cells_values);
         if(!check_file_cells(index,rows,cols) || !check_borders(&map)){
             printf("Invalid\n");
             return 1;
         }
-        map_init(&map, rows,cols,cells_values);
         if(strcmp(argv[1],"--rpath")==0){
             if(!can_start(&map,start_row,start_col)){
                 fprintf(stderr,"Invalid start cell.");
@@ -191,7 +191,7 @@ bool isborder(Map *map, int r, int c, int border){
     return 0;
 }
 int check_file_cells(int index,int rows, int cols){
-    if(index != rows*cols){
+    if(rows < 0 || cols < 0 || index != rows*cols){
         return 0;
     } else {
         return 1;
