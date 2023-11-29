@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
+// Author: xuhliar00
 #define righthand 1
 #define lefthand 2
 #define left_side 1
@@ -151,7 +152,6 @@ int map_alloc(Map *map,int rows, int cols){
     map->cols = 0;
     map->cells=(unsigned char *)malloc(sizeof(unsigned char)*rows*cols);
     if(map->cells==NULL){
-        free(map->cells);
         return 0;
     }
     return 1;
@@ -227,7 +227,7 @@ bool isborder(Map *map, int rows, int cols, int border){
 /// @param cols Specified number of columns for the map.
 /// @return Returns 1 if total number of cells from file matches the expected count and the values are valid. Otherwise returns 0.
 int check_file_cells(int index,int rows, int cols){
-    if(rows < 0 || cols < 0 || index != rows*cols){
+    if(index != rows*cols || rows < 0 || cols < 0){
         return 0;
     } else {
         return 1;
