@@ -9,7 +9,7 @@
 #define right_side 2
 #define top_bot_side 3
 #define MAX_FILENAME_LENGTH 100
-#define MAX_MAP_CELLS 100
+#define MAX_MAP_CELLS 1000
 typedef struct {
     int rows;
     int cols;
@@ -227,7 +227,7 @@ bool isborder(Map *map, int rows, int cols, int border){
 /// @param cols Specified number of columns for the map.
 /// @return Returns 1 if total number of cells from file matches the expected count and the values are valid. Otherwise returns 0.
 int check_file_cells(int index,int rows, int cols){
-    if(index != rows*cols || rows < 0 || cols < 0){
+    if(index < rows*cols || rows < 0 || cols < 0){
         return 0;
     } else {
         return 1;
