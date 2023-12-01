@@ -9,7 +9,7 @@
 #define right_side 2
 #define top_bot_side 3
 #define MAX_FILENAME_LENGTH 100
-#define MAX_MAP_CELLS 1000
+#define MAX_MAP_CELLS 2000
 typedef struct {
     int rows;
     int cols;
@@ -164,8 +164,8 @@ int map_alloc(Map *map,int rows, int cols){
 void map_init(Map *map,int rows, int cols,int *cells_values){
     map->rows=rows;
     map->cols=cols;
-    for(int i=0; i < rows*cols;i++){
-        map->cells[i]=(unsigned char)cells_values[i];
+    for(int cell_index=0; cell_index < rows*cols;cell_index++){
+        map->cells[cell_index]=(unsigned char)cells_values[cell_index];
     }
 }
 /// @brief Deallocates memory and sets dimenstions to 0.
